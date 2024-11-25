@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hızlı Okuma Göz Egzersizi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #313131;
+        }
+
+        #dots-container {
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .dot-pair {
+            display: flex;
+            justify-content: space-around;
+            margin: 10px 0;
+            width: 300px;
+            padding: 40px;
+        }
+
+        .dot {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: white;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .slider-label, .level-label {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .slider, .level-button {
+            margin: 5px;
+        }
+
+        .level-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .level-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Göz Egzersizi</h1>
+    <div id="dots-container"></div>
+
+    <div class="controls">
+        <div class="level-label">Seviye: <span id="current-level">1</span></div>
+        <button class="level-button" id="level-up">Seviyeyi Arttır</button>
+        <div class="slider-label">Ritim Ayarı</div>
+        <input type="range" class="slider" id="speed-slider" min="200" max="2000" value="1000">
+    </div>
+
+    <script>
+        const dotsContainer = document.getElementById('dots-container');
+        const levelUpButton = document.getElementById('level-up');
+        const currentLevelLabel = document.getElementById('current-level');
+        const slider = document.getElementById('speed-slider');
+
+        let speed = slider.value;
+        let currentIndex = 0;
+        let currentLevel = 1;
+        const colors = ['blue'];
+
+        // Nokta yapısını yeniden oluştur
+        function createDots(level) {
+            dotsContainer.innerHTML = ''; // Eski noktaları temizle
+            const dotsPerRow = level + 1; // Her satırdaki nokta sayısı
+            const totalDots = dotsPerRow * 3; // 3 satırda toplam nokta sayısı
+
+            for (let i = 0; i < totalDots / dotsPerRow; i++) {
+                const dotRow = document.createElement('div');
+                dotRow.classList.add('dot-pair');
+                for (let j = 0; j < dotsPerRow; j++) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('dot');
+                    dotRow.appendChild(dot);
+                }
+                dotsContainer.appendChild(dotRow);
+            }
+        }
+
+        // Animasyonu çalıştır
+        function animateDots() {
+            const dots = document.querySelectorAll('.dot');
+
+            // Tüm noktaları sıfırla
+            dots.forEach(dot => {
+                dot.style.transform = 'scale(1)';
+                dot.style.backgroundColor = 'white';
+            });
+
+            // Mevcut noktayı büyüt ve rengini değiştir
+            const currentDot = dots[currentIndex];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            currentDot.style.transform = 'scale(1.5)';
+            currentDot.style.backgroundColor = randomColor;
+
+            // Bir sonraki nokta
+            currentIndex = (currentIndex + 1) % dots.length;
+        }
+
+        // Seviye arttırma
+        levelUpButton.addEventListener('click', () => {
+            if (currentLevel < 3) {
+                currentLevel++;
+                currentLevelLabel.textContent = currentLevel;
+                createDots(currentLevel);
+                clearInterval(animationInterval);
+                animationInterval = setInterval(animateDots, speed);
+            } else {
+                alert("En yüksek seviyeye ulaştınız!");
+            }
+        });
+
+        // Hız değişikliği
+        slider.addEventListener('input', () => {
+            speed = slider.value;
+            clearInterval(animationInterval);
+            animationInterval = setInterval(animateDots, speed);
+        });
+
+        // Başlangıç ayarları
+        createDots(currentLevel);
+        let animationInterval = setInterval(animateDots, speed);
+    </script>
+</body>
+</html>
