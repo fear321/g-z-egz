@@ -13,11 +13,15 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            background-color: #313131;
+            background-color: #1d1d1d;
+        }
+        h1 {
+            text-shadow: 1px 5px 50px rgba(255, 255, 255, 0.473);
+            color: aliceblue;
+            font-size: 2rem;
         }
 
         #dots-container {
-
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -47,6 +51,12 @@
             margin-top: 20px;
         }
 
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
         .slider-label, .level-label {
             margin-bottom: 10px;
             font-size: 18px;
@@ -67,7 +77,34 @@
         }
 
         .level-button:hover {
-            background-color: #0056b3;
+            background-color: #af2626;
+        }
+
+        #random-mode {
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        /* Ekran genişliği 720px'den büyük olduğunda */
+        @media (min-width: 720px) {
+            .dot-pair {
+                width: 500px; /* Noktalar arasındaki yatay genişlik artırıldı */
+            }
+
+            .dot {
+                width: 60px; /* Nokta boyutu artırıldı */
+                height: 60px;
+            }
+        }
+        @media (min-width: 1080px) {
+            .dot-pair {
+                width: 700px; /* Noktalar arasındaki yatay genişlik artırıldı */
+            }
+
+            .dot {
+                width: 60px; /* Nokta boyutu artırıldı */
+                height: 60px;
+            }
         }
     </style>
 </head>
@@ -76,22 +113,35 @@
     <div id="dots-container"></div>
 
     <div class="controls">
-        <div class="level-label">Seviye: <span id="current-level">1</span></div>
-        <button class="level-button" id="level-up">Seviyeyi Arttır</button>
+        <div class="button-group">
+            <button class="level-button" id="level-down">Seviyeyi Azalt</button>
+            <button class="level-button" id="level-up">Seviyeyi Arttır</button>
+        </div>
+        <label>
+            <input type="checkbox" id="random-mode"> Karışık Mod
+        </label>
         <div class="slider-label">Ritim Ayarı</div>
-        <input type="range" class="slider" id="speed-slider" min="200" max="2000" value="1000">
+        <input type="range" class="slider" id="speed-slider" min="200" max="1000" value="500">
+        <div class="level-label">Seviye: <span id="current-level">1</span></div>
     </div>
+
+    <!-- Metronom sesi -->
+    <audio id="metronome-sound" src="metronome-85688.mp3"></audio>
 
     <script>
         const dotsContainer = document.getElementById('dots-container');
         const levelUpButton = document.getElementById('level-up');
+        const levelDownButton = document.getElementById('level-down');
         const currentLevelLabel = document.getElementById('current-level');
         const slider = document.getElementById('speed-slider');
+        const randomModeCheckbox = document.getElementById('random-mode');
+        const metronomeSound = document.getElementById('metronome-sound');
 
         let speed = slider.value;
         let currentIndex = 0;
         let currentLevel = 1;
-        const colors = ['blue'];
+        let randomMode = false;
+        const colors = ['#889'];
 
         // Nokta yapısını yeniden oluştur
         function createDots(level) {
@@ -113,7 +163,7 @@
 
         // Animasyonu çalıştır
         function animateDots() {
-            const dots = document.querySelectorAll('.dot');
+            const dots = Array.from(document.querySelectorAll('.dot'));
 
             // Tüm noktaları sıfırla
             dots.forEach(dot => {
@@ -121,14 +171,25 @@
                 dot.style.backgroundColor = 'white';
             });
 
+            // Karışık mod etkinse rastgele bir nokta seç
+            if (randomMode) {
+                currentIndex = Math.floor(Math.random() * dots.length);
+            }
+
             // Mevcut noktayı büyüt ve rengini değiştir
             const currentDot = dots[currentIndex];
             const randomColor = colors[Math.floor(Math.random() * colors.length)];
             currentDot.style.transform = 'scale(1.5)';
             currentDot.style.backgroundColor = randomColor;
 
-            // Bir sonraki nokta
-            currentIndex = (currentIndex + 1) % dots.length;
+            // Metronom sesi oynat
+            metronomeSound.currentTime = 0;
+            metronomeSound.play();
+
+            // Bir sonraki nokta (karışık mod kapalıysa sırayla ilerler)
+            if (!randomMode) {
+                currentIndex = (currentIndex + 1) % dots.length;
+            }
         }
 
         // Seviye arttırma
@@ -144,11 +205,29 @@
             }
         });
 
+        // Seviye azaltma
+        levelDownButton.addEventListener('click', () => {
+            if (currentLevel > 1) {
+                currentLevel--;
+                currentLevelLabel.textContent = currentLevel;
+                createDots(currentLevel);
+                clearInterval(animationInterval);
+                animationInterval = setInterval(animateDots, speed);
+            } else {
+                alert("En düşük seviyeye ulaştınız!");
+            }
+        });
+
         // Hız değişikliği
         slider.addEventListener('input', () => {
             speed = slider.value;
             clearInterval(animationInterval);
             animationInterval = setInterval(animateDots, speed);
+        });
+
+        // Karışık mod değişikliği
+        randomModeCheckbox.addEventListener('change', () => {
+            randomMode = randomModeCheckbox.checked;
         });
 
         // Başlangıç ayarları
